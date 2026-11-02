@@ -24,7 +24,7 @@
 1. 打开脚本文件的 **raw 链接**（GitHub 上点开 `userscript/bilimanga.user.js` → 右上角 `Raw`）：
 
    ```
-   https://raw.githubusercontent.com/zhtinist/Bilimanga-Downloader/main/userscript/bilimanga.user.js
+   https://raw.githubusercontent.com/HaotianZhu296/Bilimanga-Downloader/main/userscript/bilimanga.user.js
    ```
 
    Tampermonkey 会自动弹出安装页，点「安装」即可。

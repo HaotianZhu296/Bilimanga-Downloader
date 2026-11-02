@@ -45,6 +45,6 @@ jobs:
 
             **可选：网盘上传**——
             - **百度网盘**：主界面 `c` 弹浏览器扫码登录，之后每卷可选「存本地 / 上传网盘」。油猴版复用浏览器已登录的百度 cookie。
-            - **OneDrive**：主界面 `o` 走微软官方设备码登录（**零注册**，扫码登录你自己的微软账号即可），上传到你自己的 OneDrive。详见 [docs/onedrive.md](https://github.com/zhtinist/Bilimanga-Downloader/blob/main/docs/onedrive.md)。
+            - **OneDrive**：主界面 `o` 走微软官方设备码登录（**零注册**，扫码登录你自己的微软账号即可），上传到你自己的 OneDrive。详见 [docs/onedrive.md](https://github.com/HaotianZhu296/Bilimanga-Downloader/blob/main/docs/onedrive.md)。
 
             > 插件化架构：内容源 / 打包格式 / 存储去向（本地 / 百度 / OneDrive）都是可插拔插件。

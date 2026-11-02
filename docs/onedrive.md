@@ -66,4 +66,4 @@ OneDrive 走微软**官方 Graph API + OAuth2**，每个人用**自己的微软�
 - **凭证安全**：登录后本地只保存一个 `refresh_token`（等于账号访问凭证），请勿外泄；它只能
   读写你的 OneDrive 文件。
 
-有问题欢迎到 [Issues](https://github.com/zhtinist/Bilimanga-Downloader/issues) 反馈。
+有问题欢迎到 [Issues](https://github.com/HaotianZhu296/Bilimanga-Downloader/issues) 反馈。

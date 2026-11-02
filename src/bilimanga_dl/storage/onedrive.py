@@ -30,7 +30,7 @@ log = get_logger("onedrive")
 DEFAULT_CLIENT_ID = "14d82eec-204b-4c2f-b7e8-296a70dab67e"
 
 # 配置/连接教程（GitHub），未连接想用时给用户打开看。
-DOC_URL = "https://github.com/zhtinist/Bilimanga-Downloader/blob/main/docs/onedrive.md"
+DOC_URL = "https://github.com/HaotianZhu296/Bilimanga-Downloader/blob/main/docs/onedrive.md"
 
 # 设备码上传分片必须是 320 KiB 的整数倍；取 10 MiB（= 32 × 320KiB）。
 CHUNK_SIZE = 10 * 1024 * 1024

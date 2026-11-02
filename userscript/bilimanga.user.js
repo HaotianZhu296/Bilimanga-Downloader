@@ -5,8 +5,8 @@
 // @description  在 bilimanga 漫画 / 哔哩轻小说(bilinovel，含繁体站 tw.linovelib) 页面里一键把整卷下载成 EPUB / PDF，可存本地或上传到你的百度网盘。
 // @author       HTZHU
 // @license      MIT
-// @homepageURL  https://github.com/zhtinist/Bilimanga-Downloader
-// @supportURL   https://github.com/zhtinist/Bilimanga-Downloader/issues
+// @homepageURL  https://github.com/HaotianZhu296/Bilimanga-Downloader
+// @supportURL   https://github.com/HaotianZhu296/Bilimanga-Downloader/issues
 // @icon         https://www.bilimanga.net/favicon.ico
 // @match        https://www.bilimanga.net/*
 // @match        https://www.bilicomic.net/*
@@ -41,8 +41,8 @@
 // @connect      1drv.com
 // @connect      sharepoint.com
 // @run-at       document-idle
-// @updateURL    https://raw.githubusercontent.com/zhtinist/Bilimanga-Downloader/main/userscript/bilimanga.user.js
-// @downloadURL  https://raw.githubusercontent.com/zhtinist/Bilimanga-Downloader/main/userscript/bilimanga.user.js
+// @updateURL    https://raw.githubusercontent.com/HaotianZhu296/Bilimanga-Downloader/main/userscript/bilimanga.user.js
+// @downloadURL  https://raw.githubusercontent.com/HaotianZhu296/Bilimanga-Downloader/main/userscript/bilimanga.user.js
 // ==/UserScript==
 
 /*
@@ -1381,7 +1381,7 @@
   // 凭证），默认用微软公共 App（零注册）；可在面板填自己注册的覆盖。登录凭证(refresh_token)
   // 只存本地 GM 存储。详见 docs/onedrive.md。
   const OD_DEFAULT_CLIENT_ID = "14d82eec-204b-4c2f-b7e8-296a70dab67e";
-  const OD_DOC_URL = "https://github.com/zhtinist/Bilimanga-Downloader/blob/main/docs/onedrive.md";
+  const OD_DOC_URL = "https://github.com/HaotianZhu296/Bilimanga-Downloader/blob/main/docs/onedrive.md";
   const OD_AUTHORITY = "https://login.microsoftonline.com/common/oauth2/v2.0";
   const OD_GRAPH = "https://graph.microsoft.com/v1.0";
   const OD_SCOPE = "offline_access Files.ReadWrite User.Read";
