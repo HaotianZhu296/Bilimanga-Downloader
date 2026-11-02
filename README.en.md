@@ -2,7 +2,7 @@
 
 **English** · [中文](README.md)
 
-Download manga from [bilimanga.net](https://www.bilimanga.net/) and light novels from [bilinovel](https://www.bilinovel.com), packaged per volume into **EPUB** or **PDF** for your e-reader.
+Download manga from [bilimanga.net](https://www.bilimanga.net/) and light novels from [bilinovel](https://www.bilinovel.net) (including the Traditional Chinese site [tw.linovelib.com](https://tw.linovelib.com)), packaged per volume into **EPUB** or **PDF** for your e-reader.
 
 Two ways to use it:
 
@@ -20,7 +20,8 @@ Two ways to use it:
    A terminal window opens. On the first run it sets up what it needs automatically (give it a moment).
 3. **Paste a manga or novel URL** into the window and press Enter. For example:
    - Manga: `https://www.bilimanga.net/detail/703.html`
-   - Novel: `https://www.bilinovel.com/novel/2139.html`
+   - Novel: `https://www.bilinovel.net/novel/2139.html`
+   - Traditional Chinese novel: `https://tw.linovelib.com/novel/2139.html`
 4. Confirm the title, then pick the volumes to download with **↑↓ to move, Space to check** (or type a range like `1-5,8`), and press Enter.
 5. The book is **added to a background download queue** and the window returns to the start immediately — you can **paste the next one to queue it too**. Finished files land in your **Downloads folder** (`~/Downloads`), organized by book title.
 

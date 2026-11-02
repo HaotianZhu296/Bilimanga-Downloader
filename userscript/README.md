@@ -1,6 +1,6 @@
 # Bilimanga 漫画 / 轻小说下载器（油猴脚本）
 
-在 **bilimanga 漫画** 或 **哔哩轻小说（bilinovel）** 页面里一键把整卷下载成
+在 **bilimanga 漫画** 或 **哔哩轻小说（bilinovel.net，含繁体站 tw.linovelib.com）** 页面里一键把整卷下载成
 **EPUB / PDF** 的 Tampermonkey 用户脚本。无需安装 Python 或任何环境，装好油猴、
 点一下右侧按钮即可，Mac / Windows 通用。
 
@@ -141,6 +141,7 @@
   速率，避免“并发太高→大面积 429→大量图被丢→再慢慢补”的恶性循环。主抓完还会**串行
   补漏**兜底，尽量一张不漏。因此速度受站点按 IP 的限流上限约束（与命令行版一致，无法更
   快，但更稳更全）。漫画图床 `i.motiezw.com` 限流较凶，整卷图多时耐心等它自适应收敛即可。
-- **轻小说**走哔哩轻小说手机站（bilinovel）；解析选择器：详情 `.book-title` /
+- **轻小说**走哔哩轻小说手机站（bilinovel.net；原 bilinovel.com 已跳转到 .net），繁体站
+  tw.linovelib.com 页面结构相同、直接可用；解析选择器：详情 `.book-title` /
   `.book-rand-a span`、目录 `.volume-chapters>li`、阅读页 `#acontent` 内的
   `<p>` 与 `<img data-src>`。站点改版时可能需按实际页面微调。

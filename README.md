@@ -2,7 +2,7 @@
 
 [English](README.en.md) · **中文**
 
-下载 [bilimanga.net](https://www.bilimanga.net/) 的漫画和 [哔哩轻小说](https://www.bilinovel.com) 的轻小说，按卷打包成 **EPUB** 或 **PDF**，方便在阅读器里看。
+下载 [bilimanga.net](https://www.bilimanga.net/) 的漫画和 [哔哩轻小说](https://www.bilinovel.net)（含繁体站 [tw.linovelib.com](https://tw.linovelib.com)）的轻小说，按卷打包成 **EPUB** 或 **PDF**，方便在阅读器里看。
 
 两种用法，任选其一：
 
@@ -20,7 +20,8 @@
    会弹出一个终端窗口，第一次打开时它会自动装好运行需要的东西（稍等一会儿）。
 3. 在窗口里**粘贴一个漫画或轻小说的网址**，回车。例如：
    - 漫画：`https://www.bilimanga.net/detail/703.html`
-   - 轻小说：`https://www.bilinovel.com/novel/2139.html`
+   - 轻小说：`https://www.bilinovel.net/novel/2139.html`
+   - 繁体轻小说：`https://tw.linovelib.com/novel/2139.html`（下载繁体版）
 4. 确认书名后，用**方向键 ↑↓ 移动、空格勾选**要下载的卷（也可以直接输入 `1-5,8` 这样的范围），回车。
 5. 选好后这本就**加入后台下载队列**开始下载，窗口立刻回到起点——你可以**接着粘下一本一起排队**。下完的文件在你的**下载文件夹**（`~/Downloads`）里，按书名分好了目录。
 

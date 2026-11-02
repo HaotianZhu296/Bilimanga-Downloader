@@ -143,7 +143,7 @@ class _Shared:
     def __init__(self, config: Config):
         self.config = config
         self._net: Optional[Net] = None
-        self._sources: dict = {}       # kind -> Source 实例（会话/引擎跨本复用）
+        self._sources: dict = {}       # kind[:site] -> Source 实例（会话/引擎跨本复用）
         self._baidu: Optional[tuple] = None   # (connected, nickname) 缓存
         self._onedrive: Optional[tuple] = None  # (connected, account) 缓存
         self._queue = None                     # 下载任务队列（惰性建）
@@ -153,12 +153,15 @@ class _Shared:
             self._net = Net(self.config)
         return self._net
 
-    def source(self, is_novel: bool):
+    def source(self, is_novel: bool, site: str = ""):
         kind = "novel" if is_novel else "manga"
-        if kind not in self._sources:
+        key = f"{kind}:{site}" if site else kind
+        if key not in self._sources:
             cls = _source_reg.find(lambda c: getattr(c, "kind", None) == kind)
-            self._sources[kind] = cls(self.ensure_net(), self.config)
-        return self._sources[kind]
+            src = cls(self.ensure_net(), self.config)
+            src.site = site
+            self._sources[key] = src
+        return self._sources[key]
 
     def queue(self):
         """下载任务队列（后台串行下载）。首次访问时创建并启动 worker。"""
@@ -274,6 +277,7 @@ class _State:
         self.shared = shared
         self.is_novel: Optional[bool] = None
         self.book_no: str = ""
+        self.site: str = ""                       # 站点变体（轻小说繁体站 "tw"）
         self.book: Optional[Book] = None
         self.selected: List[int] = []
         self.fmt: str = "epub"
@@ -293,7 +297,7 @@ def _classify_input(raw: str, default_is_novel: bool):
     """把用户输入归类为 (is_novel, book_no)。
 
     关键：**完整网址以域名为准**决定是漫画还是轻小说——
-    ``bilinovel.com/novel/3`` 与 ``bilimanga.net/detail/3`` 是两本不同的书，
+    ``bilinovel.net/novel/3`` 与 ``bilimanga.net/detail/3`` 是两本不同的书，
     只靠书号会撞车。裸书号无法从域名判断，返回的 ``is_novel`` 为
     ``default_is_novel``（交互模式传 None，由调用方追问类型）。
     """
@@ -301,7 +305,7 @@ def _classify_input(raw: str, default_is_novel: bool):
     s = (raw or "").strip()
     low = s.lower()
     is_url = ("://" in low) or ("." in low and "/" in low)
-    novel_site = "bilinovel.com" in low or "linovelib.com" in low or "linovelib" in low
+    novel_site = "bilinovel" in low or "linovelib" in low
     manga_site = "bilimanga.net" in low or "bilicomic.net" in low or "bilicomic" in low
     novel_path = "/novel/" in low
     manga_path = "/detail/" in low or "/read/" in low
@@ -317,11 +321,17 @@ def _classify_input(raw: str, default_is_novel: bool):
     if is_url:
         raise ValueError(
             "无法识别该网址属于哪个站点。请粘贴完整网址：\n"
-            "  轻小说 https://www.bilinovel.com/novel/3.html\n"
+            "  轻小说 https://www.bilinovel.net/novel/3.html\n"
+            "  繁体   https://tw.linovelib.com/novel/3.html\n"
             "  漫画   https://www.bilimanga.net/detail/703.html\n"
             "或直接输入书号。")
     # 非 URL 且非纯数字：按默认类型尽力解析
     return default_is_novel, (parse_novel_no(s) if default_is_novel else parse_book_no(s))
+
+
+def _novel_site(raw: str) -> str:
+    """轻小说网址对应的站点变体：繁体站 tw.linovelib.com 返回 "tw"，其余为默认站。"""
+    return "tw" if "tw.linovelib" in (raw or "").lower() else ""
 
 
 # ---------------- 各步骤 ----------------
@@ -349,7 +359,8 @@ def _step_input(st: _State) -> str:
     _breadcrumb(0)
     _print("粘贴漫画或轻小说的网址（详情页 / 目录页），或输入书号，自动识别类型：")
     _print("  漫画   https://www.bilimanga.net/detail/703.html")
-    _print("  轻小说 https://www.bilinovel.com/novel/2139.html")
+    _print("  轻小说 https://www.bilinovel.net/novel/2139.html")
+    _print("  繁体   https://tw.linovelib.com/novel/2139.html")
     connected, nick = st.shared.baidu_status()
     if connected:
         _print(f"[green]☁ 百度云：{nick}[/green]")
@@ -447,6 +458,7 @@ def _step_input(st: _State) -> str:
         is_novel = kind.startswith("📖")
     st.is_novel = is_novel
     st.book_no = book_no
+    st.site = _novel_site(raw) if is_novel else ""
     return NEXT
 
 
@@ -454,7 +466,7 @@ def _step_confirm(st: _State) -> str:
     _clear()
     _breadcrumb(1, "轻小说" if st.is_novel else "漫画")
     _print("正在解析……（轻小说秒开；漫画偶尔需启动浏览器过 Cloudflare，约 10–20 秒）")
-    st.source = st.shared.source(st.is_novel)
+    st.source = st.shared.source(st.is_novel, st.site)
     try:
         book = st.source.fetch_book(st.book_no)
     except Exception as exc:  # noqa: BLE001
@@ -532,7 +544,8 @@ def _step_download(st: _State) -> str:
     tgt_label = st.shared.storage(target).status_label()
     # 加入下载队列，立刻回主界面（后台 worker 按加入顺序逐本下载，可继续加任务）。
     q = st.shared.queue()
-    task = q.add(st.is_novel, st.book_no, st.book.title, st.selected, st.fmt, target)
+    task = q.add(st.is_novel, st.book_no, st.book.title, st.selected, st.fmt, target,
+                 site=st.site)
     _print(f"\n[bold green]✓ 已加入下载队列（第 {task.seq} 个）[/bold green]："
            f"{st.book.title}（{len(st.selected)} 卷 → {tgt_label}）")
     pend = q.pending_count()
@@ -628,6 +641,7 @@ def run_download(config: Config, url_or_no: str) -> None:
     st = _State(config, shared)
     try:
         st.is_novel, st.book_no = _classify_input(url_or_no, default_is_novel=False)
+        st.site = _novel_site(url_or_no) if st.is_novel else ""
     except ValueError as exc:
         _print(f"[red]{exc}[/red]")
         return

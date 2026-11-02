@@ -18,6 +18,8 @@ class Source(ABC):
     name: str = ""
     #: 类别："manga" | "novel"，用于分目录与格式限制。
     kind: str = ""
+    #: 站点变体（如轻小说繁体站 "tw"）；空串为默认站点。由调用方在实例化后设置。
+    site: str = ""
 
     # ---- 匹配与书号（类方法：无需实例）----
     @classmethod

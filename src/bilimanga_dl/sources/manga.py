@@ -33,7 +33,7 @@ class MangaSource(Source):
         low = (raw or "").lower()
         if "bilimanga.net" in low or "bilicomic.net" in low or "bilicomic" in low:
             return True
-        has_novel = "bilinovel.com" in low or "linovelib" in low or "/novel/" in low
+        has_novel = "bilinovel" in low or "linovelib" in low or "/novel/" in low
         return (("/detail/" in low) or ("/read/" in low)) and not has_novel
 
     @classmethod

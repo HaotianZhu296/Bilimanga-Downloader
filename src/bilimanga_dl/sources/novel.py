@@ -34,7 +34,7 @@ class NovelSource(Source):
     @classmethod
     def matches(cls, raw: str) -> bool:
         low = (raw or "").lower()
-        if "bilinovel.com" in low or "linovelib" in low:
+        if "bilinovel" in low or "linovelib" in low:
             return True
         has_manga = "bilimanga.net" in low or "bilicomic" in low
         return ("/novel/" in low) and not has_manga
@@ -45,11 +45,12 @@ class NovelSource(Source):
 
     def _ensure_mobile(self):
         if self._mobile is None:
-            from ..novel_mobile import MobileNovelDownloader
+            from ..novel_mobile import DOMAIN, TW_DOMAIN, MobileNovelDownloader
             # 正文抓取仍串行（限流安全）；num_thread 只用于插图并发下载。
             nt = max(1, int(getattr(self.config, "concurrency_max", 4)))
             self._mobile = MobileNovelDownloader(num_thread=nt,
-                                                 proxy=self.config.proxy or "")
+                                                 proxy=self.config.proxy or "",
+                                                 domain=TW_DOMAIN if self.site == "tw" else DOMAIN)
         return self._mobile
 
     def fetch_book(self, book_no: str) -> Book:
@@ -61,6 +62,8 @@ class NovelSource(Source):
                 self.engine = eng
                 return book
         except Exception as exc:  # noqa: BLE001
+            if self.site == "tw":   # 浏览器引擎只认简体站，繁体站不回退
+                raise
             log.warning("手机站引擎解析失败，回退浏览器：%s", exc)
         # 回退浏览器引擎
         from ..novel import NovelDownloader

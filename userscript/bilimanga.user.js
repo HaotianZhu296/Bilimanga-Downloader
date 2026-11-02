@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Bilimanga 漫画/轻小说下载器
 // @namespace    https://github.com/zhtinist/Bilimanga-Downloader
-// @version      3.2.0
-// @description  在 bilimanga 漫画 / 哔哩轻小说(bilinovel) 页面里一键把整卷下载成 EPUB / PDF，可存本地或上传到你的百度网盘。
+// @version      3.3.0
+// @description  在 bilimanga 漫画 / 哔哩轻小说(bilinovel，含繁体站 tw.linovelib) 页面里一键把整卷下载成 EPUB / PDF，可存本地或上传到你的百度网盘。
 // @author       HTZHU
 // @license      MIT
 // @homepageURL  https://github.com/zhtinist/Bilimanga-Downloader
@@ -12,7 +12,9 @@
 // @match        https://www.bilicomic.net/*
 // @match        https://www.bilinovel.com/*
 // @match        https://m.bilinovel.com/*
+// @match        https://www.bilinovel.net/*
 // @match        https://www.linovelib.com/*
+// @match        https://tw.linovelib.com/*
 // @grant        GM_download
 // @grant        GM_xmlhttpRequest
 // @grant        GM_addStyle
@@ -26,6 +28,7 @@
 // @connect      bilimanga.net
 // @connect      bilicomic.net
 // @connect      bilinovel.com
+// @connect      bilinovel.net
 // @connect      linovelib.com
 // @connect      baidu.com
 // @connect      pcs.baidu.com
@@ -738,8 +741,12 @@
   async function fetchChapterImages(chapterUrl, base) {
     try {
       const html = await fetchText(chapterUrl);
-      const urls = imageUrlsFromDoc(parseDoc(html), base);
+      const doc = parseDoc(html);
+      const urls = imageUrlsFromDoc(doc, base);
       if (urls.length > 0) return urls;
+      // 0 张图：记下页面标题与正文开头，便于从调试日志判断站点给的是什么页面
+      dlog("  阅读页无图片", chapterUrl, "标题=" + (doc.title || "").trim(),
+        "正文=" + textOf(doc.body).replace(/\s+/g, " ").slice(0, 200));
     } catch (e) {
       if (String(e.message).includes("Cloudflare")) throw e;
     }

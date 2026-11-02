@@ -37,6 +37,7 @@ class Task:
     selected: List[int]
     fmt: str
     target: str
+    site: str = ""                # 站点变体（轻小说繁体站 "tw"）
     status: str = "排队"          # 排队 / 下载中 / 完成 / 失败
     total_vols: int = 0
     done_vols: int = 0
@@ -60,11 +61,11 @@ class DownloadQueue:
 
     # ---- 入队 ----
     def add(self, is_novel: bool, book_no: str, title: str,
-            selected: List[int], fmt: str, target: str) -> Task:
+            selected: List[int], fmt: str, target: str, site: str = "") -> Task:
         with self._cv:
             self._seq += 1
             t = Task(self._seq, is_novel, book_no, title, list(selected),
-                     fmt, target, total_vols=len(selected))
+                     fmt, target, site=site, total_vols=len(selected))
             self._q.append(t)
             self.tasks.append(t)
             self._cv.notify()
@@ -129,7 +130,7 @@ class DownloadQueue:
         task.status = "下载中"
         tgt = _TARGET_LABEL.get(task.target, task.target)
         qprint(f"\n▶ 开始下载：{task.title}（{task.total_vols} 卷 → {tgt}）")
-        src = self._shared.source(task.is_novel)
+        src = self._shared.source(task.is_novel, task.site)
         book = src.fetch_book(task.book_no)
         index_map = {v.index: v for v in book.volumes}
         titles = {v.index: v.title for v in book.volumes}

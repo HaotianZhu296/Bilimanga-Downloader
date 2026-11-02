@@ -1,6 +1,6 @@
 """轻小说（哔哩轻小说）**无浏览器**下载引擎 → EPUB。
 
-借鉴 montaro2017/bili_novel_packer 的关键发现：手机站 ``www.bilinovel.com``
+借鉴 montaro2017/bili_novel_packer 的关键发现：手机站 ``www.bilinovel.net``（原 .com）
 用【安卓手机 UA + Cookie night=0】纯 HTTP 即可访问，**无需真实浏览器过
 Cloudflare**——比桌面站(linovelib) + DrissionPage 快一个数量级、几乎不吃内存。
 
@@ -35,7 +35,8 @@ from .core.ratelimit import RateGate as _RateGate
 
 log = get_logger("novel_mobile")
 
-DOMAIN = "https://www.bilinovel.com"
+DOMAIN = "https://www.bilinovel.net"     # 原 www.bilinovel.com，现已 301 到 .net
+TW_DOMAIN = "https://tw.linovelib.com"   # 繁体站：页面结构与手机站相同，正文为繁体
 IMPERSONATE = "chrome"  # curl_cffi 用真实 Chrome 指纹过 CF；bilinovel 手机站对任何 UA 都吐手机版 DOM
 # #acontent 里非正文的装饰/诱饵节点：整段丢弃，只留 <p> 与 <img>
 _DROP_TAGS = {"div", "ins", "figure", "fig", "script", "style", ".tp", ".bd"}
@@ -47,7 +48,7 @@ _BLOCK_MARKERS = ("Just a moment", "Attention Required", "Access denied",
 
 def is_mobile_novel_url(text: str) -> bool:
     t = (text or "").lower()
-    return "bilinovel.com" in t or "linovelib" in t or "/novel/" in t
+    return "bilinovel" in t or "linovelib" in t or "/novel/" in t
 
 
 @dataclass
@@ -66,10 +67,12 @@ class MobileNovelDownloader:
     """无浏览器手机站引擎。接口对齐 :class:`novel.NovelDownloader`。"""
 
     def __init__(self, num_thread: int = 4, min_interval: float = 0.7,
-                 concurrency: int = 1, timeout: int = 30, proxy: str = ""):
+                 concurrency: int = 1, timeout: int = 30, proxy: str = "",
+                 domain: str = DOMAIN):
         # 正文抓取默认**串行**（concurrency=1）：手机站对并发很敏感，多连接会被
         # tarpit/429 拖到卡死。图片下载仍用 num_thread 并发（走 CDN，不受此限）。
         self.num_thread = max(1, num_thread)
+        self.domain = domain.rstrip("/")
         self.timeout = timeout
         # (连接超时, 读超时)：避免被限流时单个请求长时间挂起。
         self._to = (8, min(timeout, 20))
@@ -77,9 +80,10 @@ class MobileNovelDownloader:
         self.session = cffi.Session(impersonate=IMPERSONATE)
         self.session.headers.update({
             "Accept": "*/*",
-            "Accept-Language": "zh-CN,zh;q=0.9",
+            "Accept-Language": ("zh-TW,zh;q=0.9" if self.domain == TW_DOMAIN
+                                else "zh-CN,zh;q=0.9"),
             "Cookie": "night=0",
-            "Referer": DOMAIN,
+            "Referer": self.domain,
         })
         if proxy:
             self.session.proxies = {"http": proxy, "https": proxy}
@@ -120,7 +124,7 @@ class MobileNovelDownloader:
 
     # ---- 元数据 + 目录 ----
     def fetch_book(self, book_no: str) -> Book:
-        d = BeautifulSoup(self._get(f"{DOMAIN}/novel/{book_no}.html"), "html.parser")
+        d = BeautifulSoup(self._get(f"{self.domain}/novel/{book_no}.html"), "html.parser")
 
         def _meta(prop):
             m = d.find("meta", {"property": prop})
@@ -133,17 +137,17 @@ class MobileNovelDownloader:
         summary = _text(d.select_one("#bookSummary content")) or _meta("og:description")
         tags = [_text(e) for e in d.select(".book-cell .book-meta span em") if _text(e)]
         cover_el = d.select_one(".book-layout img") or d.select_one(".book-img img")
-        cover = _abs(cover_el.get("src")) if cover_el and cover_el.get("src") else ""
+        cover = _abs(cover_el.get("src"), self.domain) if cover_el and cover_el.get("src") else ""
 
         book = Book(book_no=book_no, title=title, author=author, cover_url=cover,
-                    summary=summary, tags=tags, base_url=DOMAIN,
+                    summary=summary, tags=tags, base_url=self.domain,
                     kind="novel", publisher=publisher)
         book.volumes = self._fetch_catalog(book_no)
         log.info("轻小说《%s》共 %d 卷（手机站引擎）", title, len(book.volumes))
         return book
 
     def _fetch_catalog(self, book_no: str) -> List[Volume]:
-        c = BeautifulSoup(self._get(f"{DOMAIN}/novel/{book_no}/catalog"), "html.parser")
+        c = BeautifulSoup(self._get(f"{self.domain}/novel/{book_no}/catalog"), "html.parser")
         volumes: List[Volume] = []
         cur: Optional[Volume] = None
         idx = 0
@@ -166,7 +170,7 @@ class MobileNovelDownloader:
                 if not a:
                     continue
                 href = a.get("href") or ""
-                url = "" if "javascript" in href else _abs(href)
+                url = "" if "javascript" in href else _abs(href, self.domain)
                 cur.chapters.append(Chapter(title=li.get_text(strip=True) or _text(a),
                                             url=url))
         # 兜底：卷标题里含书名前缀时不强行去除（EPUB 命名会自处理）
@@ -186,10 +190,10 @@ class MobileNovelDownloader:
             if any(m in html for m in _BLOCK_MARKERS):
                 gated = True
             text += self._page_text(html)
-            nxt_path = base.replace(".html", f"_{page + 1}.html")[len(DOMAIN):]
+            nxt_path = base.replace(".html", f"_{page + 1}.html")[len(self.domain):]
             if nxt_path in html:
                 page += 1
-                url = DOMAIN + nxt_path
+                url = self.domain + nxt_path
             else:
                 break
         return text, gated
@@ -214,7 +218,7 @@ class MobileNovelDownloader:
                 src = node.get("data-src") or node.get("src") or ""
                 if not src or "<" in src:
                     continue
-                out.append(f'<img class="__nv__" src="{_abs(src)}"/>')
+                out.append(f'<img class="__nv__" src="{_abs(src, self.domain)}"/>')
             else:
                 txt = node.get_text().strip()
                 if txt:
@@ -383,7 +387,7 @@ class MobileNovelDownloader:
 
 
 # ---------------- 小工具 ----------------
-def _abs(src: str) -> str:
+def _abs(src: str, domain: str = DOMAIN) -> str:
     """把图片/链接地址规范为绝对 URL。"""
     if not src:
         return ""
@@ -392,7 +396,7 @@ def _abs(src: str) -> str:
     if src.startswith("//"):
         return "https:" + src
     if src.startswith("/"):
-        return DOMAIN + src
+        return domain + src
     return src
 
 
